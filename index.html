@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Champion Asia Chess — Turnamen & Akademi Catur Online</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & Cinzel -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Cinzel', 'serif'],
+                    },
+                    colors: {
+                        dark: {
+                            950: '#09090b',
+                            900: '#121216',
+                            800: '#1c1c22',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chess-grid-bg {
+            background-image: 
+                linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%), 
+                linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%);
+            background-size: 40px 40px;
+            background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+        }
+        .chess-board-light {
+            background-image: 
+                linear-gradient(45deg, rgba(15, 23, 42, 0.03) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(15, 23, 42, 0.03) 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, rgba(15, 23, 42, 0.03) 75%), 
+                linear-gradient(-45deg, transparent 75%, rgba(15, 23, 42, 0.03) 75%);
+            background-size: 36px 36px;
+            background-position: 0 0, 0 18px, 18px -18px, -18px 0px;
+        }
+        .page-fade {
+            animation: fadeIn 0.25s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-amber-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 bg-dark-950/95 backdrop-blur-md border-b border-white/10 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <button onclick="switchPage('beranda')" class="flex items-center gap-3 group text-left">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-dark-950 font-bold shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-chess-knight text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="font-display font-bold text-lg tracking-wider text-white">CHAMPION <span class="text-amber-400">ASIA</span></span>
+                        <span class="block text-[10px] text-slate-400 tracking-widest uppercase -mt-1">Chess Tournament & Club</span>
+                    </div>
+                </button>
+
+                <!-- Desktop Menu (Multi-Page Switcher) -->
+                <div class="hidden md:flex items-center space-x-2 text-sm font-medium">
+                    <button onclick="switchPage('beranda')" data-nav="beranda" class="nav-btn px-4 py-2 rounded-lg text-amber-400 bg-white/10 transition">
+                        Beranda
+                    </button>
+                    <button onclick="switchPage('turnamen')" data-nav="turnamen" class="nav-btn px-4 py-2 rounded-lg text-slate-300 hover:text-amber-400 hover:bg-white/5 transition">
+                        Jadwal Turnamen
+                    </button>
+                    <button onclick="switchPage('peraturan')" data-nav="peraturan" class="nav-btn px-4 py-2 rounded-lg text-slate-300 hover:text-amber-400 hover:bg-white/5 transition">
+                        Format & Aturan
+                    </button>
+                    <button onclick="switchPage('merch')" data-nav="merch" class="nav-btn px-4 py-2 rounded-lg text-slate-300 hover:text-amber-400 hover:bg-white/5 transition">
+                        Jasa & Perlengkapan
+                    </button>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="hidden md:flex items-center gap-3">
+                    <button onclick="openModal('Champion Asia Grand Rapid (10+0)', 'Rp 25.000')" class="bg-amber-500 hover:bg-amber-400 text-dark-950 font-semibold text-sm px-5 py-2.5 rounded-lg transition shadow-md shadow-amber-500/20 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy"></i> Daftar Turnamen
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden text-slate-300 hover:text-white p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-dark-900 border-b border-white/10 px-4 pt-2 pb-4 space-y-1 text-sm">
+            <button onclick="switchPage('beranda')" data-nav-mobile="beranda" class="mobile-nav-btn w-full text-left px-3 py-2.5 rounded-lg text-amber-400 bg-white/10 font-semibold">Beranda</button>
+            <button onclick="switchPage('turnamen')" data-nav-mobile="turnamen" class="mobile-nav-btn w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:text-amber-400">Jadwal Turnamen</button>
+            <button onclick="switchPage('peraturan')" data-nav-mobile="peraturan" class="mobile-nav-btn w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:text-amber-400">Format & Aturan</button>
+            <button onclick="switchPage('merch')" data-nav-mobile="merch" class="mobile-nav-btn w-full text-left px-3 py-2.5 rounded-lg text-slate-300 hover:text-amber-400">Jasa & Perlengkapan</button>
+            <button onclick="openModal('Champion Asia Grand Rapid (10+0)', 'Rp 25.000')" class="w-full mt-2 bg-amber-500 text-dark-950 font-semibold py-2.5 rounded-lg">
+                Daftar Turnamen Sekarang
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow">
+
+        <!-- ========================================================= -->
+        <!-- HALAMAN 1: BERANDA                                        -->
+        <!-- ========================================================= -->
+        <div id="page-beranda" class="page-section page-fade">
+            <!-- Hero Section -->
+            <section class="relative bg-dark-950 chess-grid-bg text-white overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24 relative z-10">
+                    <div class="grid lg:grid-cols-12 gap-12 items-center">
+                        <!-- Left Content -->
+                        <div class="lg:col-span-7 space-y-6">
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-amber-400 text-xs font-semibold tracking-wide">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                PENDAFTARAN BATCH #12 DIBUKA
+                            </div>
+                            
+                            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                                Asah Strategi, Raih Gelar <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600">Champion Asia</span>
+                            </h1>
+                            
+                            <p class="text-slate-400 text-base sm:text-lg max-w-2xl leading-relaxed">
+                                Platform turnamen catur online resmi bersistem Swiss & Arena untuk pecatur pemula hingga master di seluruh Indonesia dan Asia Tenggara. Terintegrasi dengan Chess.com & Lichess.
+                            </p>
+
+                            <div class="flex flex-wrap gap-4 pt-2">
+                                <button onclick="switchPage('turnamen')" class="bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold px-7 py-3.5 rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                                    Lihat Jadwal Turnamen <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                                <button onclick="switchPage('merch')" class="bg-white/5 hover:bg-white/10 border border-white/15 text-white font-semibold px-7 py-3.5 rounded-xl transition flex items-center gap-2">
+                                    <i class="fa-solid fa-graduation-cap text-amber-400"></i> Kelas & Perlengkapan
+                                </button>
+                            </div>
+
+                            <!-- Trust Stats -->
+                            <div class="grid grid-cols-3 gap-6 pt-8 border-t border-white/10 max-w-lg">
+                                <div>
+                                    <div class="text-2xl sm:text-3xl font-bold text-white">1.200+</div>
+                                    <div class="text-xs text-slate-400 mt-1">Peserta Terdaftar</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl sm:text-3xl font-bold text-amber-400">100%</div>
+                                    <div class="text-xs text-slate-400 mt-1">Anti-Cheat Fair Play</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl sm:text-3xl font-bold text-white">Mingguan</div>
+                                    <div class="text-xs text-slate-400 mt-1">Jadwal Pertandingan</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Card: Featured Next Match -->
+                        <div class="lg:col-span-5">
+                            <div class="bg-dark-900 border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl relative">
+                                <div class="flex justify-between items-center mb-6">
+                                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-3 py-1 rounded-md">Turnamen Utama</span>
+                                    <span class="text-xs text-slate-400"><i class="fa-solid fa-globe mr-1"></i> Platform: Chess.com</span>
+                                </div>
+
+                                <h3 class="font-display text-2xl font-bold text-white mb-2">Champion Asia Grand Rapid</h3>
+                                <p class="text-sm text-slate-400 mb-6">Sistem Swiss 7 Babak • Kontrol Waktu 10 Menit + 0 Detik (10+0)</p>
+
+                                <!-- Countdown Box -->
+                                <div class="bg-dark-950 rounded-xl p-4 border border-white/5 mb-6">
+                                    <div class="text-[11px] text-slate-400 uppercase tracking-wider text-center mb-2">Mulai Pertandingan Dalam</div>
+                                    <div class="grid grid-cols-4 gap-2 text-center">
+                                        <div class="bg-dark-800 rounded-lg py-2">
+                                            <span id="cd-days" class="text-xl font-bold text-white">02</span>
+                                            <span class="block text-[10px] text-slate-400">Hari</span>
+                                        </div>
+                                        <div class="bg-dark-800 rounded-lg py-2">
+                                            <span id="cd-hours" class="text-xl font-bold text-white">14</span>
+                                            <span class="block text-[10px] text-slate-400">Jam</span>
+                                        </div>
+                                        <div class="bg-dark-800 rounded-lg py-2">
+                                            <span id="cd-mins" class="text-xl font-bold text-white">35</span>
+                                            <span class="block text-[10px] text-slate-400">Menit</span>
+                                        </div>
+                                        <div class="bg-dark-800 rounded-lg py-2">
+                                            <span id="cd-secs" class="text-xl font-bold text-amber-400">40</span>
+                                            <span class="block text-[10px] text-slate-400">Detik</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3 text-sm mb-6">
+                                    <div class="flex justify-between py-2 border-b border-white/5">
+                                        <span class="text-slate-400">Total Hadiah (Prize Pool)</span>
+                                        <span class="font-bold text-emerald-400">Rp 1.500.000 + E-Sertifikat</span>
+                                    </div>
+                                    <div class="flex justify-between py-2 border-b border-white/5">
+                                        <span class="text-slate-400">Biaya Pendaftaran</span>
+                                        <span class="font-bold text-white">Rp 25.000 / Pemain</span>
+                                    </div>
+                                    <div class="flex justify-between py-2">
+                                        <span class="text-slate-400">Kuota Tersisa</span>
+                                        <span class="font-semibold text-amber-400">18 / 64 Slot</span>
+                                    </div>
+                                </div>
+
+                                <button onclick="openModal('Champion Asia Grand Rapid (10+0)', 'Rp 25.000')" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold py-3.5 rounded-xl transition shadow-lg shadow-amber-500/20">
+                                    Amankan Slot Sekarang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Navigation Cards (Akses Cepat ke Halaman Lain) -->
+            <section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div onclick="switchPage('turnamen')" class="cursor-pointer bg-white p-6 rounded-2xl border border-slate-200 hover:border-amber-500 shadow-sm hover:shadow-md transition group">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:bg-amber-500 group-hover:text-dark-950 transition">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-900 flex items-center justify-between">
+                            Jadwal Turnamen <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-amber-600"></i>
+                        </h3>
+                        <p class="text-sm text-slate-600 mt-2">Cek jadwal kategori Blitz, Rapid, dan kelas Pemula U-1500 minggu ini.</p>
+                    </div>
+
+                    <div onclick="switchPage('peraturan')" class="cursor-pointer bg-white p-6 rounded-2xl border border-slate-200 hover:border-amber-500 shadow-sm hover:shadow-md transition group">
+                        <div class="w-12 h-12 rounded-xl bg-dark-900 text-amber-400 flex items-center justify-center text-xl mb-4 group-hover:bg-amber-500 group-hover:text-dark-950 transition">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-900 flex items-center justify-between">
+                            Format & Aturan <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-amber-600"></i>
+                        </h3>
+                        <p class="text-sm text-slate-600 mt-2">Pelajari sistem pairing Swiss, tie-break, kebijakan anti-cheat, dan pencairan hadiah.</p>
+                    </div>
+
+                    <div onclick="switchPage('merch')" class="cursor-pointer bg-white p-6 rounded-2xl border border-slate-200 hover:border-amber-500 shadow-sm hover:shadow-md transition group">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:bg-amber-500 group-hover:text-dark-950 transition">
+                            <i class="fa-solid fa-chess-board"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-900 flex items-center justify-between">
+                            Jasa & Perlengkapan <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-amber-600"></i>
+                        </h3>
+                        <p class="text-sm text-slate-600 mt-2">Daftar kelas coaching privat catur atau pesan papan standar FIDE & jam catur digital.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- HALAMAN 2: JADWAL TURNAMEN (HALAMAN TERSENDIRI)           -->
+        <!-- ========================================================= -->
+        <div id="page-turnamen" class="page-section hidden page-fade chess-board-light">
+            <!-- Header Halaman -->
+            <div class="bg-dark-950 text-white py-12 border-b border-white/10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <span class="text-amber-400 font-bold text-xs uppercase tracking-widest">Kompetisi Resmi</span>
+                    <h1 class="font-display text-3xl sm:text-4xl font-bold mt-1">Jadwal & Kategori Turnamen</h1>
+                    <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl">Pilih arena pertandingan sesuai kontrol waktu dan level ratingmu. Pendaftaran ditutup 30 menit sebelum babak pertama dimulai.</p>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+                <!-- Filter Kategori -->
+                <div class="flex flex-wrap gap-2 mb-8">
+                    <button onclick="filterTurnamen('all', this)" class="filter-btn px-4 py-2 rounded-lg text-xs font-bold bg-dark-950 text-white transition">Semua Kategori</button>
+                    <button onclick="filterTurnamen('blitz', this)" class="filter-btn px-4 py-2 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-amber-500 transition">Blitz (3+2)</button>
+                    <button onclick="filterTurnamen('rapid', this)" class="filter-btn px-4 py-2 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-amber-500 transition">Rapid (10+0)</button>
+                    <button onclick="filterTurnamen('pemula', this)" class="filter-btn px-4 py-2 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-amber-500 transition">Pemula / U-1500</button>
+                </div>
+
+                <!-- Grid Turnamen -->
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Card 1: Blitz -->
+                    <div data-cat="blitz" class="turnamen-card bg-white rounded-2xl border border-slate-200 p-7 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-5">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">BLITZ 3+2</span>
+                                <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-calendar mr-1"></i> Jumat, 20:00 WIB</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2">Asia Friday Blitz Night</h3>
+                            <p class="text-slate-600 text-sm mb-6">Pertarungan cepat 9 babak menguji refleks taktik dan intuisi endgame dalam tekanan waktu.</p>
+                            
+                            <ul class="space-y-2.5 text-sm text-slate-700 mb-6">
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-600"></i> Terbuka untuk semua rating</li>
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-600"></i> Hadiah Juara 1, 2, 3 & Best U-1600</li>
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-600"></i> Platform: Lichess / Chess.com</li>
+                            </ul>
+                        </div>
+
+                        <div class="pt-5 border-t border-slate-100">
+                            <div class="flex items-baseline justify-between mb-4">
+                                <span class="text-xs text-slate-500">Registrasi</span>
+                                <span class="text-xl font-bold text-slate-900">Rp 15.000</span>
+                            </div>
+                            <button onclick="openModal('Asia Friday Blitz Night (3+2)', 'Rp 15.000')" class="w-full py-3 rounded-xl bg-dark-900 hover:bg-dark-800 text-white font-semibold text-sm transition">
+                                Daftar Kategori Blitz
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Rapid Utama -->
+                    <div data-cat="rapid" class="turnamen-card bg-dark-900 text-white rounded-2xl border-2 border-amber-500 p-7 shadow-xl transition flex flex-col justify-between relative">
+                        <div class="absolute -top-3.5 right-6 bg-amber-500 text-dark-950 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                            Paling Populer
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-5">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400">RAPID 10+0</span>
+                                <span class="text-xs font-semibold text-slate-400"><i class="fa-regular fa-calendar mr-1"></i> Minggu, 19:30 WIB</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2">Champion Asia Grand Rapid</h3>
+                            <p class="text-slate-400 text-sm mb-6">Turnamen utama mingguan dengan sistem Swiss 7 Babak dan verifikasi anti-cheat ketat.</p>
+                            
+                            <ul class="space-y-2.5 text-sm text-slate-300 mb-6">
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-amber-400"></i> Total Hadiah Rp 1.500.000</li>
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-amber-400"></i> E-Sertifikat Resmi Juara & Peserta</li>
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-amber-400"></i> Live Streaming Partai Meja 1</li>
+                            </ul>
+                        </div>
+
+                        <div class="pt-5 border-t border-white/10">
+                            <div class="flex items-baseline justify-between mb-4">
+                                <span class="text-xs text-slate-400">Registrasi</span>
+                                <span class="text-xl font-bold text-amber-400">Rp 25.000</span>
+                            </div>
+                            <button onclick="openModal('Champion Asia Grand Rapid (10+0)', 'Rp 25.000')" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-sm transition shadow-lg shadow-amber-500/20">
+                                Daftar Kategori Rapid
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Pelajar / Pemula -->
+                    <div data-cat="pemula" class="turnamen-card bg-white rounded-2xl border border-slate-200 p-7 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-5">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">U-1500 / PEMULA</span>
+                                <span class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-calendar mr-1"></i> Sabtu, 16:00 WIB</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900 mb-2">Rising Star Asia Cup</h3>
+                            <p class="text-slate-600 text-sm mb-6">Khusus pecatur rating di bawah 1500 & pelajar/mahasiswa untuk melatih mental bertanding.</p>
+                            
+                            <ul class="space-y-2.5 text-sm text-slate-700 mb-6">
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-600"></i> Kontrol waktu 15+10 (6 Babak)</li>
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-600"></i> Evaluasi & Analisis Partai Gratis</li>
+                                <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-600"></i> Hadiah Uang Pembinaan + E-Sertifikat</li>
+                            </ul>
+                        </div>
+
+                        <div class="pt-5 border-t border-slate-100">
+                            <div class="flex items-baseline justify-between mb-4">
+                                <span class="text-xs text-slate-500">Registrasi</span>
+                                <span class="text-xl font-bold text-slate-900">Rp 10.000</span>
+                            </div>
+                            <button onclick="openModal('Rising Star Asia Cup (U-1500)', 'Rp 10.000')" class="w-full py-3 rounded-xl bg-dark-900 hover:bg-dark-800 text-white font-semibold text-sm transition">
+                                Daftar Kategori Pemula
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- HALAMAN 3: FORMAT & ATURAN (HALAMAN TERSENDIRI)            -->
+        <!-- ========================================================= -->
+        <div id="page-peraturan" class="page-section hidden page-fade">
+            <!-- Header Halaman -->
+            <div class="bg-dark-950 text-white py-12 border-b border-white/10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <span class="text-amber-400 font-bold text-xs uppercase tracking-widest">Regulasi & Fair Play</span>
+                    <h1 class="font-display text-3xl sm:text-4xl font-bold mt-1">Format Pertandingan & Aturan Resmi</h1>
+                    <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl">Standar regulasi turnamen Champion Asia untuk menjamin kompetisi yang adil, transparan, dan sportif bagi seluruh peserta.</p>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-12">
+                <!-- 4 Pilar Utama -->
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg mb-4">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1.5">Zero Engine Tolerance</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">Dilarang keras menggunakan bantuan komputer (Stockfish/Komodo), buku pembukaan, atau joki selama bertanding.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg mb-4">
+                            <i class="fa-solid fa-sitemap"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1.5">Sistem Swiss & Tie-Break</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">Pairing otomatis berdasarkan poin. Jika poin akhir sama, penentuan juara memakai Buchholz & Sonneborn-Berger.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg mb-4">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1.5">Pengawasan Kamera Meja Atas</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">Peserta yang masuk 5 besar pada 2 babak terakhir wajib bergabung ke ruang Zoom/Discord dengan kamera menyala.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-lg mb-4">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-900 mb-1.5">Pencairan Hadiah 1x24 Jam</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">Setelah audit fair play selesai, hadiah ditransfer langsung ke DANA, OVO, GoPay, atau rekening bank pemenang.</p>
+                    </div>
+                </div>
+
+                <!-- Detail Peraturan -->
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-7">
+                        <h3 class="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-amber-500"></i> Tata Tertib Peserta
+                        </h3>
+                        <ol class="list-decimal list-inside space-y-3 text-sm text-slate-700 leading-relaxed">
+                            <li>Peserta wajib masuk ke lobi klub (Chess.com / Lichess) minimal <strong>15 menit</strong> sebelum jadwal pertandingan.</li>
+                            <li>Gunakan satu akun asli yang memiliki riwayat minimal <strong>20 pertandingan rated</strong> sebelum mendaftar.</li>
+                            <li>Koneksi internet menjadi tanggung jawab masing-masing pemain. Keterlambatan masuk papan akan memotong waktu pikir secara otomatis.</li>
+                            <li>Pemain yang terdeteksi melakukan kecurangan (<em>fair play violation</em>) oleh sistem platform maupun panitia akan langsung didiskualifikasi tanpa pengembalian biaya pendaftaran.</li>
+                            <li>Keputusan wasit dan panitia Champion Asia bersifat mutlak dan mengikat.</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-dark-900 text-white rounded-2xl p-7 border border-white/10">
+                        <h3 class="font-bold text-lg text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> Distribusi Hadiah & Poin
+                        </h3>
+                        <div class="space-y-4 text-sm">
+                            <div class="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold text-amber-400 block">Sistem Penilaian Pertandingan</span>
+                                    <span class="text-xs text-slate-400">Menang: 1 Poin • Remis (Draw): 0.5 Poin • Kalah: 0 Poin</span>
+                                </div>
+                                <i class="fa-solid fa-chess-king text-2xl text-amber-400/50"></i>
+                            </div>
+
+                            <div class="space-y-2.5 text-slate-300">
+                                <div class="flex justify-between py-2 border-b border-white/10">
+                                    <span>Juara 1</span>
+                                    <span class="font-bold text-white">45% Prize Pool + E-Sertifikat Juara 1</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-white/10">
+                                    <span>Juara 2</span>
+                                    <span class="font-bold text-white">25% Prize Pool + E-Sertifikat Juara 2</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-white/10">
+                                    <span>Juara 3</span>
+                                    <span class="font-bold text-white">15% Prize Pool + E-Sertifikat Juara 3</span>
+                                </div>
+                                <div class="flex justify-between py-2">
+                                    <span>Kategori Spesial (Best U-1500 / Best Putri)</span>
+                                    <span class="font-bold text-amber-400">15% Prize Pool + E-Sertifikat</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- HALAMAN 4: JASA & PERLENGKAPAN (HALAMAN TERSENDIRI)       -->
+        <!-- ========================================================= -->
+        <div id="page-merch" class="page-section hidden page-fade">
+            <!-- Header Halaman -->
+            <div class="bg-dark-950 text-white py-12 border-b border-white/10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <span class="text-amber-400 font-bold text-xs uppercase tracking-widest">Akademi & Toko UMKM</span>
+                    <h1 class="font-display text-3xl sm:text-4xl font-bold mt-1">Jasa Pelatihan & Perlengkapan Catur</h1>
+                    <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl">Tingkatkan pemahaman strategi caturmu melalui bimbingan privat atau miliki perlengkapan latihan standar turnamen.</p>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Item 1 -->
+                    <div class="group rounded-2xl border border-slate-200 overflow-hidden bg-white hover:shadow-xl transition flex flex-col justify-between">
+                        <div>
+                            <div class="h-48 bg-dark-900 flex items-center justify-center relative overflow-hidden">
+                                <i class="fa-solid fa-chess-queen text-6xl text-amber-400/80 group-hover:scale-110 transition duration-300"></i>
+                                <span class="absolute top-3 left-3 bg-amber-500 text-dark-950 text-[11px] font-bold px-2.5 py-1 rounded">Jasa Pelatihan</span>
+                            </div>
+                            <div class="p-6">
+                                <h3 class="font-bold text-lg text-slate-900">Privat Catur Dasar & Strategi</h3>
+                                <p class="text-slate-600 text-sm mt-2">4x Pertemuan via Zoom/Discord (60 menit/sesi). Materi: Prinsip Opening, Pola Skakmat, Taktik Tengah, & Dasar Endgame.</p>
+                            </div>
+                        </div>
+                        <div class="px-6 pb-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="font-bold text-lg text-slate-900">Rp 150.000 <span class="text-xs font-normal text-slate-500">/paket</span></span>
+                            <button onclick="orderProduct('Paket Privat Catur Dasar (4x Pertemuan)', 'Rp 150.000')" class="bg-dark-900 hover:bg-amber-500 text-white hover:text-dark-950 text-xs font-bold px-4 py-2.5 rounded-lg transition">
+                                Pesan Sekarang
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="group rounded-2xl border border-slate-200 overflow-hidden bg-white hover:shadow-xl transition flex flex-col justify-between">
+                        <div>
+                            <div class="h-48 bg-dark-900 flex items-center justify-center relative overflow-hidden">
+                                <i class="fa-solid fa-magnifying-glass-chart text-6xl text-amber-400/80 group-hover:scale-110 transition duration-300"></i>
+                                <span class="absolute top-3 left-3 bg-amber-500 text-dark-950 text-[11px] font-bold px-2.5 py-1 rounded">Jasa Analisis</span>
+                            </div>
+                            <div class="p-6">
+                                <h3 class="font-bold text-lg text-slate-900">Bedah & Evaluasi 5 Partai PGN</h3>
+                                <p class="text-slate-600 text-sm mt-2">Analisis mendalam 5 pertandinganmu di Chess.com/Lichess untuk menemukan kebiasaan blunder dan rekomendasi pembukaan yang cocok.</p>
+                            </div>
+                        </div>
+                        <div class="px-6 pb-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="font-bold text-lg text-slate-900">Rp 50.000 <span class="text-xs font-normal text-slate-500">/sesi</span></span>
+                            <button onclick="orderProduct('Jasa Bedah & Evaluasi 5 Partai Catur', 'Rp 50.000')" class="bg-dark-900 hover:bg-amber-500 text-white hover:text-dark-950 text-xs font-bold px-4 py-2.5 rounded-lg transition">
+                                Pesan Sekarang
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="group rounded-2xl border border-slate-200 overflow-hidden bg-white hover:shadow-xl transition flex flex-col justify-between">
+                        <div>
+                            <div class="h-48 bg-dark-900 flex items-center justify-center relative overflow-hidden">
+                                <i class="fa-solid fa-chess-board text-6xl text-amber-400/80 group-hover:scale-110 transition duration-300"></i>
+                                <span class="absolute top-3 left-3 bg-white/15 backdrop-blur text-white text-[11px] font-semibold px-2.5 py-1 rounded">Produk Fisik</span>
+                            </div>
+                            <div class="p-6">
+                                <h3 class="font-bold text-lg text-slate-900">Papan Catur Standar Turnamen</h3>
+                                <p class="text-slate-600 text-sm mt-2">Papan gulung bahan vinyl tebal standar FIDE ukuran 50x50 cm + Bidak plastik pemberat + Tas selempang eksklusif.</p>
+                            </div>
+                        </div>
+                        <div class="px-6 pb-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="font-bold text-lg text-slate-900">Rp 135.000 <span class="text-xs font-normal text-slate-500">/set</span></span>
+                            <button onclick="orderProduct('Papan Catur Standar Turnamen FIDE', 'Rp 135.000')" class="bg-dark-900 hover:bg-amber-500 text-white hover:text-dark-950 text-xs font-bold px-4 py-2.5 rounded-lg transition">
+                                Pesan Sekarang
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="group rounded-2xl border border-slate-200 overflow-hidden bg-white hover:shadow-xl transition flex flex-col justify-between">
+                        <div>
+                            <div class="h-48 bg-dark-900 flex items-center justify-center relative overflow-hidden">
+                                <i class="fa-solid fa-stopwatch text-6xl text-amber-400/80 group-hover:scale-110 transition duration-300"></i>
+                                <span class="absolute top-3 left-3 bg-white/15 backdrop-blur text-white text-[11px] font-semibold px-2.5 py-1 rounded">Aksesoris</span>
+                            </div>
+                            <div class="p-6">
+                                <h3 class="font-bold text-lg text-slate-900">Jam Catur Digital Pro</h3>
+                                <p class="text-slate-600 text-sm mt-2">Layar jernih, tombol responsif, mendukung pengaturan Bonus (Increment) & Delay untuk latihan Blitz maupun Rapid tatap muka.</p>
+                            </div>
+                        </div>
+                        <div class="px-6 pb-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="font-bold text-lg text-slate-900">Rp 185.000 <span class="text-xs font-normal text-slate-500">/unit</span></span>
+                            <button onclick="orderProduct('Jam Catur Digital Pro', 'Rp 185.000')" class="bg-dark-900 hover:bg-amber-500 text-white hover:text-dark-950 text-xs font-bold px-4 py-2.5 rounded-lg transition">
+                                Pesan Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER (DARK) -->
+    <footer class="bg-dark-950 text-slate-400 py-10 border-t border-white/10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-dark-950 font-bold">
+                    <i class="fa-solid fa-chess-knight"></i>
+                </div>
+                <span class="font-display font-bold text-white tracking-wider">CHAMPION <span class="text-amber-400">ASIA</span></span>
+            </div>
+            
+            <p class="text-xs text-center md:text-left">
+                &copy; 2026 Champion Asia Chess UMKM. Wadah Kompetisi & Pembinaan Pecatur Indonesia.
+            </p>
+
+            <div class="flex gap-4 text-lg">
+                <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-whatsapp"></i></a>
+                <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="hover:text-amber-400 transition"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL PENDAFTARAN TURNAMEN (LANGSUNG KE WHATSAPP) -->
+    <div id="regModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative page-fade">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-2 text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">
+                <i class="fa-solid fa-trophy"></i> Formulir Pendaftaran
+            </div>
+            <h3 id="modalTitle" class="text-xl font-bold text-slate-900 mb-1">Champion Asia Grand Rapid</h3>
+            <p id="modalPrice" class="text-sm font-semibold text-emerald-600 mb-5">Biaya: Rp 25.000</p>
+
+            <form id="regForm" onsubmit="submitToWhatsApp(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap (Untuk E-Sertifikat)</label>
+                    <input type="text" id="playerName" required placeholder="Contoh: Budi Santoso" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Platform</label>
+                        <select id="platform" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500">
+                            <option value="Chess.com">Chess.com</option>
+                            <option value="Lichess.org">Lichess.org</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Username Akun</label>
+                        <input type="text" id="username" required placeholder="Username catur" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Metode Pembayaran</label>
+                    <select id="paymentMethod" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-amber-500">
+                        <option value="QRIS (Semua E-Wallet / M-Banking)">QRIS (DANA / OVO / GoPay / M-Banking)</option>
+                        <option value="DANA">DANA</option>
+                        <option value="Transfer Bank BCA / Mandiri">Transfer Bank BCA / Mandiri</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 mt-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Lanjut Konfirmasi via WhatsApp
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // GANTI NOMOR WHATSAPP ADMIN DI SINI (Gunakan format 628...)
+        const ADMIN_WA_NUMBER = "6281526096407";
+
+        // Fungsi Berpindah Halaman (Multi-Page View)
+        function switchPage(pageName) {
+            // Sembunyikan semua halaman
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Tampilkan halaman yang dipilih
+            const targetPage = document.getElementById('page-' + pageName);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+
+            // Update tampilan tombol aktif di Navbar Desktop
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.nav === pageName) {
+                    btn.classList.add('text-amber-400', 'bg-white/10');
+                    btn.classList.remove('text-slate-300');
+                } else {
+                    btn.classList.remove('text-amber-400', 'bg-white/10');
+                    btn.classList.add('text-slate-300');
+                }
+            });
+
+            // Update tampilan tombol aktif di Navbar Mobile
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                if (btn.dataset.navMobile === pageName) {
+                    btn.classList.add('text-amber-400', 'bg-white/10', 'font-semibold');
+                    btn.classList.remove('text-slate-300');
+                } else {
+                    btn.classList.remove('text-amber-400', 'bg-white/10', 'font-semibold');
+                    btn.classList.add('text-slate-300');
+                }
+            });
+
+            // Tutup menu mobile jika terbuka & scroll ke atas
+            document.getElementById('mobile-menu').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Filter Kategori di Halaman Jadwal Turnamen
+        function filterTurnamen(category, btnElement) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-dark-950', 'text-white');
+                btn.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-700');
+            });
+            btnElement.classList.add('bg-dark-950', 'text-white');
+            btnElement.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-700');
+
+            document.querySelectorAll('.turnamen-card').forEach(card => {
+                if (category === 'all' || card.dataset.cat === category) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Toggle Mobile Menu
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Modal Logic
+        let selectedEvent = "";
+        let selectedPrice = "";
+
+        function openModal(eventName, price) {
+            selectedEvent = eventName;
+            selectedPrice = price;
+            document.getElementById('modalTitle').innerText = eventName;
+            document.getElementById('modalPrice').innerText = "Biaya Registrasi: " + price;
+            document.getElementById('regModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('regModal').classList.add('hidden');
+        }
+
+        // Kirim Pendaftaran Turnamen ke WhatsApp
+        function submitToWhatsApp(e) {
+            e.preventDefault();
+            const name = document.getElementById('playerName').value;
+            const platform = document.getElementById('platform').value;
+            const username = document.getElementById('username').value;
+            const payment = document.getElementById('paymentMethod').value;
+
+            const message = `Halo Admin *Champion Asia Chess*! Saya ingin mendaftar turnamen:%0A%0A` +
+                            `🏆 *Turnamen:* ${selectedEvent}%0A` +
+                            `💰 *Biaya:* ${selectedPrice}%0A` +
+                            `👤 *Nama Lengkap:* ${name}%0A` +
+                            `♟️ *Platform:* ${platform}%0A` +
+                            `🆔 *Username:* ${username}%0A` +
+                            `💳 *Metode Bayar:* ${payment}%0A%0A` +
+                            `Mohon info nomor rekening/QRIS untuk penyelesaian pembayaran. Terima kasih!`;
+
+            window.open(`https://wa.me/${ADMIN_WA_NUMBER}?text=${message}`, '_blank');
+            closeModal();
+        }
+
+        // Pemesanan Jasa / Produk Catur ke WhatsApp
+        function orderProduct(itemName, price) {
+            const message = `Halo Admin *Champion Asia Chess*! Saya tertarik memesan:%0A%0A` +
+                            `📦 *Produk/Jasa:* ${itemName}%0A` +
+                            `💰 *Harga:* ${price}%0A%0A` +
+                            `Apakah masih tersedia?`;
+            window.open(`https://wa.me/${ADMIN_WA_NUMBER}?text=${message}`, '_blank');
+        }
+
+        // Simulasi Countdown Timer Real-time
+        let totalSeconds = (2 * 86400) + (14 * 3600) + (35 * 60) + 40;
+        setInterval(() => {
+            if (totalSeconds <= 0) return;
+            totalSeconds--;
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = totalSeconds % 60;
+
+            document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+            document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+            document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
+            document.getElementById('cd-secs').innerText = String(secs).padStart(2, '0');
+        }, 1000);
+    </script>
+</body>
+</html>
